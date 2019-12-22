@@ -11,6 +11,7 @@ WORKDIR /build
 # load and compile dependencies using dummy main.rs to facilitate incremental Docker build
 ADD Cargo.toml .
 RUN mkdir src && echo "fn main() {}" > src/main.rs \
+ && cargo update                                   \
  && cargo check --release --target=$target         \
  && rm src/main.rs && rmdir src
 # build real app

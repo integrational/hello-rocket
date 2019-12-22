@@ -1,1 +1,20 @@
-curl -iw "\n" http://localhost:8080/
+#port=8000
+port=8080
+base=http://localhost:$port/api/v1
+c="curl -iw \n"
+
+set -x
+
+$c $base/greetings
+$c $base/greetings -I
+$c $base/greetings -X POST -H 'Content-Type: application/json' -d '{"message": "howdy"}'
+
+$c $base/greetings/42
+$c $base/greetings/42 -H 'Accept: application/json'
+$c $base/greetings/42 -H 'Accept: application/greeting+xml'
+$c $base/greetings/42 -H 'Accept: application/xml'
+$c $base/greetings/42 -H 'Accept: text/xml'
+
+$c $base/greetings/43 -I
+$c $base/greetings/44 -X PUT
+$c $base/greetings/45 -X DELETE

@@ -1,2 +1,1 @@
-docker run --rm --name hello-rocket -t -p 8000:8000 integrational/hello-rocket
-
+docker run --rm --name hello-rocket -t -p 8080:8000 integrational/hello-rocket

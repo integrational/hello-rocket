@@ -1,4 +1,7 @@
 /target
 **/*.rs.bk
+# IntelliJ IDEA
+*.iml
+.idea
 # experimenting with not checking-in lock:
 Cargo.lock

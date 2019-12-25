@@ -18,3 +18,4 @@ $c $base/greetings/42 -H 'Accept: text/xml'
 $c $base/greetings/43 -I
 $c $base/greetings/44 -X PUT
 $c $base/greetings/45 -X DELETE
+$c $base/greetings/42 -X DELETE

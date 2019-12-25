@@ -6,7 +6,16 @@ extern crate rocket_contrib;
 #[macro_use]
 extern crate serde_derive;
 
+use rocket::http::Status;
+use rocket::response::status::Created;
+use rocket::Request;
 use rocket_contrib::json::Json;
+
+#[derive(Serialize, Debug)]
+struct ErrorResponse {
+    status: u16,
+    reason: String,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Greeting {
@@ -20,21 +29,36 @@ struct GreetingWithId {
 }
 
 #[get("/")]
-fn get_greetings() -> String {
-    format!("TODO all greetings")
+fn get_greetings() -> Json<Vec<GreetingWithId>> {
+    let grs = vec![
+        GreetingWithId {
+            id: 1,
+            message: "Seavas du".to_string(),
+        },
+        GreetingWithId {
+            id: 2,
+            message: "Howdy pahdner".to_string(),
+        },
+    ];
+    Json(grs)
 }
 
 #[post("/", format = "application/json", data = "<greeting>")]
-fn add_greeting(greeting: Json<Greeting>) -> Json<GreetingWithId> {
-    Json(GreetingWithId {
-        id: 1,
+fn add_greeting(greeting: Json<Greeting>) -> Created<Json<GreetingWithId>> {
+    let id: usize = 1;
+    let gr = GreetingWithId {
+        id,
         message: greeting.message.clone(),
-    })
+    };
+    Created(greeting_url_path(id), Some(Json(gr)))
 }
 
 #[get("/<id>", format = "application/json")]
-fn get_greeting(id: usize) -> String {
-    format!("TODO: get {} as JSON", id)
+fn get_greeting(id: usize) -> Json<GreetingWithId> {
+    Json(GreetingWithId {
+        id,
+        message: format!("This is greeting {}", id),
+    })
 }
 
 #[get("/<id>", format = "application/greeting+xml", rank = 2)]
@@ -58,8 +82,40 @@ fn update_greeting(id: usize) -> String {
 }
 
 #[delete("/<id>")]
-fn delete_greeting(id: usize) -> String {
-    format!("TODO: delete {}", id)
+fn delete_greeting(id: usize) -> Result<String, Status> {
+    if id == 42 {
+        Err(Status::Forbidden)
+    } else {
+        Ok(format!("TODO: delete {}", id))
+    }
+}
+
+#[catch(403)]
+fn forbidden(requ: &Request) -> Json<ErrorResponse> {
+    Json(ErrorResponse {
+        status: 403,
+        reason: format!("{} on resource {} is forbidden", requ.method(), requ.uri()),
+    })
+}
+
+#[catch(404)]
+fn not_found(requ: &Request) -> Json<ErrorResponse> {
+    Json(ErrorResponse {
+        status: 404,
+        reason: format!("Resource {} not found", requ.uri()),
+    })
+}
+
+#[catch(500)]
+fn internal_error() -> Json<ErrorResponse> {
+    Json(ErrorResponse {
+        status: 500,
+        reason: "Internal server error".to_string(),
+    })
+}
+
+fn greeting_url_path(id: usize) -> String {
+    format!("/api/v1/greetings/{}", id)
 }
 
 fn main() {
@@ -77,5 +133,6 @@ fn main() {
                 delete_greeting
             ],
         )
+        .register(catchers![forbidden, not_found, internal_error])
         .launch();
 }

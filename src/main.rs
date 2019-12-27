@@ -11,6 +11,8 @@ use rocket::response::status::Created;
 use rocket::Request;
 use rocket_contrib::json::Json;
 
+static BASE_PATH: &str = "/api/v1/greetings";
+
 #[derive(Serialize, Debug)]
 struct ErrorResponse {
     status: u16,
@@ -50,7 +52,7 @@ fn add_greeting(greeting: Json<Greeting>) -> Created<Json<GreetingWithId>> {
         id,
         message: greeting.message.clone(),
     };
-    Created(greeting_url_path(id), Some(Json(gr)))
+    Created(get_greeting_uri(id), Some(Json(gr)))
 }
 
 #[get("/<id>", format = "application/json")]
@@ -59,6 +61,11 @@ fn get_greeting(id: usize) -> Json<GreetingWithId> {
         id,
         message: format!("This is greeting {}", id),
     })
+}
+
+fn get_greeting_uri(id: usize) -> String {
+    // FIXME: can't use BASE_PATH instead of "/api/v1/greetings" for some reason
+    uri!("/api/v1/greetings", get_greeting: id).to_string()
 }
 
 #[get("/<id>", format = "application/greeting+xml", rank = 2)]
@@ -114,14 +121,10 @@ fn internal_error() -> Json<ErrorResponse> {
     })
 }
 
-fn greeting_url_path(id: usize) -> String {
-    format!("/api/v1/greetings/{}", id)
-}
-
 fn main() {
     rocket::ignite()
         .mount(
-            "/api/v1/greetings",
+            BASE_PATH,
             routes![
                 get_greetings,
                 add_greeting,
